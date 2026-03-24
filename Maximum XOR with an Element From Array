@@ -1,0 +1,53 @@
+class Node:
+    def __init__(self):
+        self.links = [None, None]
+    def containsKey(self, bit):
+        return self.links[bit] is not None
+    def put(self, bit, node):
+        self.links[bit] = node
+    def get(self, bit):
+        return self.links[bit]
+class Trie:
+    def __init__(self):
+        self.root = Node()
+    def insert(self, num):
+        node = self.root
+        for i in range(31, -1, -1):
+            bit = (num >> i) & 1
+            if not node.containsKey(bit):
+                node.put(bit, Node())
+            node = node.get(bit)
+    def getMax(self, num):
+        node = self.root
+        maxNum = 0
+        for i in range(31, -1, -1):
+            bit = (num >> i) & 1
+            if node.containsKey(1 - bit):
+                maxNum |= (1 << i)
+                node = node.get(1 - bit)
+            else:
+                node = node.get(bit)
+        return maxNum
+class Solution:
+    def maximizeXor(self, nums, queries):
+        # Step 1: sort nums
+        nums.sort()
+
+        # Step 2: store queries with original index
+        new_queries = []
+        for i in range(len(queries)):
+            x, m = queries[i]
+            new_queries.append((x, m, i))
+        new_queries.sort(key=lambda q: q[1])
+        trie = Trie()
+        res = [-1] * len(queries)
+        j = 0
+        for x, m, idx in new_queries:
+            while j < len(nums) and nums[j] <= m:
+                trie.insert(nums[j])
+                j += 1
+            if j == 0:
+                res[idx] = -1
+            else:
+                res[idx] = trie.getMax(x)
+        return res
